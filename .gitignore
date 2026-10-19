@@ -37,3 +37,6 @@ probe-*.mjs
 _*.mjs
 *.bak
 *.bak-*
+
+# ── 宣传页归 BILI-STUDIO-RV 仓库，不在这里跟踪 ───
+public/nasapunk.html
