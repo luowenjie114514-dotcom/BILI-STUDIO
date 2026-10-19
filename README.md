@@ -150,7 +150,7 @@ bili_jct=xxx
 署名会自动加破折号，最终评论长这样：
 
 ```
-@Yaprussia @道馆恶魔三鹰朝 这条笑死我了 ——笨蛋鲸鱼娘
+@B站id 这条笑死我了 ——笨蛋鲸鱼娘
 ```
 
 ### 5. 任务参数
@@ -292,15 +292,9 @@ bili_jct=xxx
 
 ### 🐋 鲸鱼娘
 
-顶栏有个圆形头像，账户 / 自动任务 / 任务历史三个空状态里也有她（半透明水印，不挡字）。
-
-- 形象是自己画的 SVG（`public/whale.svg`），没有版权问题，也不占体积。
-- 头像是内联在 `index.html` 里的 `<symbol id="whaleGirl">`，页面用 `<use>` 复用；
-  底色走主题变量，换主题她跟着换配色。
-- `build.mjs` 每次打包前会跑 `tools/inline-whale.mjs` 重新内联一遍，改形象只改 `public/whale.svg`。
 
 **位图素材（`public/assets/`）**
-除了 SVG 之外还有一组位图，png 和 webp 各一份：
+有一组位图，png 和 webp 各一份：
 
 | 文件 | 用途 |
 | --- | --- |
@@ -373,18 +367,6 @@ Content-Type: application/json
 - **模型不听话包了 ```json 围栏**：会先剥围栏再取 JSON，不会因为围栏解析失败。
 - **多模态供应商返回数组 content**：会把文本片段拼回。
 
-### 本机默认供应商（Fiime）
-
-你的 DSH profile 里已经配了一个 OpenAI 兼容供应商，控制台预设里直接选就行：
-
-| 项 | 值 |
-|---|---|
-| Base URL | `https://opc.fiime.cn/api/model-service/v1` |
-| 模型 | `deepseek-v4-flash` 或 `deepseek-v4-pro` |
-| 鉴权 | Bearer（key 形如 `opc_sk_...`） |
-
-实测（2026-10-16）：`GET /models` 带 Bearer 返回 **22 个模型**，两个 v4 模型都在列且启用；
-但当时 `/chat/completions` 返回 **503 模型服务当前并发繁忙**——这是供应商侧过载，等一会儿或换个模型再试。
 
 ---
 
