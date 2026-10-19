@@ -7,6 +7,36 @@
 **零 npm 依赖**，Node 18+ 就能跑；一条 `node build.mjs` 打成单文件 Windows exe。
 [MIT 许可](LICENSE)，欢迎 fork —— 但请先读 [第五章「安全与风控」](#五安全与风控请认真看)。
 
+## 界面截图（深色主题）
+
+![控制台全貌](docs/screenshots/ui-hero.webp)
+
+<details>
+<summary><b>展开更多分区截图</b>（载荷对照 / 版本时间线 / 接口表 / 分区图）</summary>
+
+<br>
+
+**03 · 载荷对照** —— 左 AI 原稿，右实际发送（@ 昵称和署名不计入正文字数上限）
+
+![载荷对照](docs/screenshots/ui-payload.webp)
+
+**08 · 版本时间线** —— 更新记录
+
+![版本时间线](docs/screenshots/ui-versions.webp)
+
+**05 · 接口表** —— 走的都是哪些 B 站接口
+
+![接口表](docs/screenshots/ui-interface.webp)
+
+**04 · 分区图** —— 12 个可拖动小窗的布局示意
+
+![分区图](docs/screenshots/ui-deck.webp)
+
+完整 9 张分区截图见 [`docs/screenshots/`](docs/screenshots/)。
+宣传页（NASA-PUNK 风格，GitHub Pages 在线）：<https://luowenjie114514-dotcom.github.io/BILI-STUDIO-RV/>
+
+</details>
+
 ---
 
 ## 一、启动
