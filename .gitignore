@@ -1,0 +1,39 @@
+# ── 运行期数据（含真实 cookie / API key，绝不进仓库）──
+data/
+dist/
+_testrun/
+*.log
+.edge-*-profile/
+_broken-*/
+config.json.broken-*
+.cookie-tmp.txt
+
+# ── 构建产物 ───
+build/
+*.exe
+*.blob
+app.bundle.cjs
+embed-assets.mjs
+
+# ── 前端构建产物（由 public/front/*.js 拼成，不要手改也不要提交）──
+public/app.js
+
+# ── 编辑器 / 系统垃圾 ───
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# ── Node ───
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ── 一次性脚本与临时文件 ───
+probe-*.mjs
+_*.mjs
+*.bak
+*.bak-*

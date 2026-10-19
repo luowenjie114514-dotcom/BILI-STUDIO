@@ -1,0 +1,26 @@
+name: tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # 项目零 npm 依赖，没有东西要 cache / install
+      - name: Show version
+        run: node --version
+
+      # UI 测试需要 Edge，windows-latest 镜像自带
+      - name: Run test suite
+        run: node test/run-all.mjs
+        timeout-minutes: 20

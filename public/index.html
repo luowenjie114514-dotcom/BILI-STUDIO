@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>蓝色大肥鱼 · 自动化搬史</title>
+<style>
+  /* 配色全走变量。写死的十六进制一律不再出现(主题编辑器 + 换肤就靠这个)。
+     一整套主题 = 下面这 30 来个变量, 存 localStorage, 也存 config.json(跟设备走)。 */
+  :root{
+    color-scheme:dark;
+    /* 背景两层 */
+    --bg:#071722;          /* 底色 */
+    --bg-deep:#04101a;     /* 底部渐深 */
+    --header-bg:rgba(7,23,34,.72);  /* 顶栏(半透明, 底下透出背景) */
+    --bg-glow1:#124a63;    /* 左上光斑 */
+    --bg-glow2:#1b3a5c;    /* 右上光斑 */
+    /* 面: 分区窗口/按钮/输入框/日志/下拉 */
+    --card:#0e2b3d;        /* 分区窗口主色(渐变的浅端) */
+    --card-deep:#0a2331;   /* 分区窗口渐变的深端 */
+    --card2:#123449;       /* 按钮底色 */
+    --btn-ink:#03212a;     /* 实心主按钮上的字 */
+    --input-bg:#061a26;    /* 输入框 / 预览框 */
+    --item-bg:#08202e;     /* 列表条目 */
+    --item-hover:#0a2c38;  /* 列表条目悬停/选中 */
+    --panel:#101a24;       /* 下拉、气泡、小浮窗 */
+    --panel2:#141c26;      /* 浮窗标题栏 / 底栏 */
+    --panel3:#1d222c;      /* ⚙ 悬浮面板(单独一套偏灰) */
+    --panel3-2:#252b36;    /* ⚙ 面板悬停 */
+    --p3-line:#3a4150;     /* ⚙ 面板边框 */
+    --p3-line2:#2a3340;    /* ⚙ 面板内部分隔线 */
+    --p3-btn:#2a2f3a;      /* ⚙ 齿轮按钮 */
+    --p3-btn-hi:#333a47;   /* ⚙ 齿轮悬停 */
+    --p3-on:#2f6fd0;       /* ⚙ 齿轮激活(私信模式开着) */
+    --p3-on-line:#3f83e8;
+    --p3-input:#0b141c;    /* ⚙ 面板里的圆点/勾选框底 */
+    --p3-fg:var(--txt); --p3-fg-hi:#fff;
+    --p3-dim:var(--dim); --p3-dim2:var(--dim);
+    --hair:rgba(255,255,255,.07);
+    /* 线 + 字 */
+    --line:#1d4a63;
+    --txt:#dff3ff; --dim:#7ba7bf;
+    --on-acc:#04202a;      /* 主/副色块上的字 */
+    /* 主色 */
+    --acc:#3fd3c6; --acc2:#1f9fb8;
+    --acc-a10:rgba(63,211,198,.12);   /* 焦点外圈 */
+    --acc-a18:rgba(63,211,198,.18);
+    --acc-a22:rgba(63,211,198,.22);
+    /* 日志面板 + 日志分级 */
+    --log-bg:var(--log-bg);
+    --log-step:var(--acc);
+    --log-info:#b9d8e8;
+    --log-time:#4d7d97;
+    --log-ok:#3ddc84; --log-warn:#ffc857; --log-err:#ff6b6b;
+    --live:var(--live);
+    /* 终端 */
+    --term-bg:#070f16;
+    --term-out:#cfd8e3; --term-err:#ff9b9b; --term-sys:#7fd3ff; --term-in:#7fd58a;
+    --term-time:#4d5c6b; --term-prompt:#7fd58a;
+    /* 更新日志弹窗 */
+    --cl-bg:#0b1721; --cl-panel:#131e2b; --cl-txt:var(--cl-txt);
+    --cl-h:var(--cl-h); --cl-code-bg:#0a1a24; --cl-code:var(--cl-code); --cl-code-line:#24323f;
+    --cl-line:#22303d; --cl-pill-bg:#12303a; --cl-pill:#5fd0c8;
+    /* 杂项 */
+    --ok:#3ddc84; --warn:#ffc857; --err:#ff6b6b; --pink:#ff8fc7;
+    --danger-bg:#3a1414; --danger-line:#6b2020; --danger-txt:#ffb3b3;
+    --ok-line:#1f6b45; --ok-bg:#0b2b1e;
+    --dry-bg:#2b240b; --dry-line:#6b5a1f;
+    --fg-hi:#fff;
+    --live-off:#4a5568; --live-a18:rgba(46,230,168,.18);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;font:14px/1.6 "Microsoft YaHei","Segoe UI",system-ui,sans-serif;
+    color:var(--txt);min-height:100vh;
+    background:
+      radial-gradient(1200px 600px at 15% -10%, var(--bg-glow1) 0%, transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, var(--bg-glow2) 0%, transparent 55%),
+      linear-gradient(180deg,var(--bg),var(--bg-deep) 70%);
+    background-attachment:fixed;
+  }
+  header{
+    display:flex;align-items:center;gap:14px;padding:16px 22px;
+    border-bottom:1px solid var(--line);background:var(--header-bg);
+    backdrop-filter:blur(8px);position:sticky;top:0;z-index:50;flex-wrap:wrap;
+  }
+  /* 顶栏底色是半透明的, 底下透出来的就是主题背景, 不再单独铺光斑 */
+  header h1{font-size:17px;margin:0;letter-spacing:.5px;display:flex;align-items:center;gap:7px}
+  header h1 span{color:var(--acc)}
+  /* 顶栏的鲸鱼娘头像: 圆形裁切, 底色用主题的分区色, 换主题跟着变 */
+  .whale-ava{
+    width:26px;height:26px;flex:0 0 auto;border-radius:50%;
+    background:radial-gradient(circle at 50% 45%,var(--acc-a18),var(--card));
+    box-shadow:0 0 0 1px var(--acc-a22), 0 2px 8px rgba(0,0,0,.35);
+    transition:transform .25s ease;
+  }
+  header h1:hover .whale-ava{transform:rotate(-6deg) scale(1.08)}
+  /* 空状态里的大号鲸鱼娘: 半透明, 当背景水印用 */
+  .whale-empty{
+    width:96px;height:96px;opacity:.5;margin:2px auto 6px;
+    filter:drop-shadow(0 4px 14px var(--acc-a18));
+  }
+  .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:18px 8px;color:var(--dim);font-size:12.5px;text-align:center;line-height:1.6}
+  header h1 .whale-ava use,.whale-empty use{pointer-events:none}
+  .badge{padding:3px 10px;border-radius:999px;font-size:12px;border:1px solid var(--line);background:var(--card)}
+  .badge.live{color:var(--ok);border-color:var(--ok-line);background:var(--ok-bg)}
+  .badge.dry{color:var(--warn);border-color:var(--dry-line);background:var(--dry-bg)}
+  .badge.dead{color:var(--err);border-color:var(--danger-line);background:var(--danger-bg)}
+  .spacer{flex:1}
+  main{max-width:1240px;margin:0 auto;padding:20px;display:grid;gap:16px;grid-template-columns:1fr 1fr}
+  @media (max-width:900px){main{grid-template-columns:1fr}}
+  .card{background:linear-gradient(160deg,var(--card),var(--card-deep));border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 8px 26px rgba(0,0,0,.25)}
+  .card.wide{grid-column:1/-1}
+  .card h2{margin:0 0 4px;font-size:15px;display:flex;align-items:center;gap:8px}
+  .card h2 .n{width:22px;height:22px;border-radius:7px;background:var(--acc2);color:var(--on-acc);display:grid;place-items:center;font-size:12px;font-weight:700}
+  .hint{color:var(--dim);font-size:12px;margin:2px 0 12px}
+  label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
+  input,textarea,select{
+    width:100%;padding:9px 11px;border-radius:9px;border:1px solid var(--line);
+    background:var(--input-bg);color:var(--txt);font:13px/1.5 inherit;outline:none;
+  }
+  input:focus,textarea:focus,select:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-a10)}
+  textarea{resize:vertical;min-height:64px}
+  button{
+    padding:9px 15px;border-radius:9px;border:1px solid var(--line);cursor:pointer;
+    background:var(--card2);color:var(--txt);font:13px inherit;transition:.15s;
+  }
+  button:hover{border-color:var(--acc);transform:translateY(-1px)}
+  button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+  button.primary{background:linear-gradient(135deg,var(--acc),var(--acc2));color:var(--btn-ink);font-weight:700;border-color:transparent}
+  button.danger{background:var(--danger-bg);border-color:var(--danger-line);color:var(--danger-txt)}
+  button.sm{padding:5px 10px;font-size:12px}
+  /* 任务历史: 清空按钮独占一行, 靠右 */
+  .hist-bar{display:flex;justify-content:flex-end;margin:0 0 8px}
+  .row{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
+  .row>div{flex:1;min-width:120px}
+  .list{margin-top:12px;display:grid;gap:8px;max-height:280px;overflow:auto}
+  .item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--item-bg)}
+  .item.active{border-color:var(--acc);background:var(--item-hover)}
+  .item .grow{flex:1;min-width:0}
+  .item .t{font-weight:600}
+  .item .s{color:var(--dim);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pill{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--dim)}
+  .pill.on{color:var(--ok);border-color:#1f6b45}
+  .pill.off{color:var(--dim)}
+  /* 账户健康状态点(v1.6.0): 绿=正常 红=失效 黄=验活失败(网络) 灰=没验过 */
+  .acc-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;
+    vertical-align:middle;flex:0 0 auto;box-shadow:0 0 0 2px rgba(255,255,255,.06)}
+  .acc-dot.ok{background:var(--ok)}
+  .acc-dot.bad{background:#ff6b6b;animation:accBad 1.6s ease-in-out infinite}
+  .acc-dot.warn{background:#ffc857}
+  .acc-dot.unknown{background:#5a6478}
+  @keyframes accBad{0%,100%{opacity:1}50%{opacity:.35}}
+  .taskbox{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+  .chk{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--txt);margin-top:12px}
+  .chk input{width:auto}
+  /* 私信形态的小齿轮 + 悬浮面板 */
+  .dmgear-wrap{position:relative;display:inline-flex;margin-left:2px}
+  .dm-gear{width:26px;height:26px;padding:0;line-height:24px;font-size:14px;border-radius:50%;color:var(--p3-fg);
+    background:var(--p3-btn);border:1px solid var(--p3-line);cursor:pointer;transition:.15s;min-width:0}
+  .dm-gear:hover{background:var(--p3-btn-hi);color:var(--p3-fg-hi)}
+  .dm-gear.on{background:var(--p3-on);border-color:var(--p3-on-line);color:var(--p3-fg-hi)}
+  .dm-pop{position:fixed;top:0;left:0;z-index:130;width:330px;padding:12px;
+    background:var(--panel3);border:1px solid var(--p3-line);border-radius:12px;
+    box-shadow:0 14px 36px rgba(0,0,0,.55);display:block}
+  .dm-pop[hidden]{display:none}
+  .dm-pop-t{font-size:12px;letter-spacing:.5px;color:var(--p3-dim);margin-bottom:8px}
+  .dm-opt{display:flex;gap:9px;align-items:flex-start;padding:8px;border-radius:9px;cursor:pointer;margin:0}
+  .dm-opt:hover{background:var(--panel3-2)}
+  .dm-opt input{margin:3px 0 0}
+  /* 全局 input 样式会把 radio 也画成输入框, 这里单独重置成圆点 */
+  .dm-opt input[type=radio]{appearance:none;-webkit-appearance:none;width:15px;height:15px;min-width:15px;
+    padding:0;margin:3px 0 0;border:1.5px solid var(--p3-dim2);border-radius:50%;background:var(--p3-input);
+    cursor:pointer;flex:0 0 auto;position:relative;box-sizing:border-box}
+  .dm-opt input[type=radio]:checked{border-color:var(--acc)}
+  .dm-opt input[type=radio]:checked::after{content:'';position:absolute;inset:2.5px;border-radius:50%;background:var(--acc)}
+  .dm-opt input[type=radio]:focus-visible{box-shadow:0 0 0 3px var(--acc-a22)}
+  /* 同一个坑: 复选框也得重置, 否则被全局 input 样式画成一条输入框 */
+  .dm-opt input[type=checkbox]{appearance:none;-webkit-appearance:none;width:15px;height:15px;min-width:15px;
+    padding:0;margin:3px 0 0;border:1.5px solid var(--p3-dim2);border-radius:4px;background:var(--p3-input);
+    cursor:pointer;flex:0 0 auto;position:relative;box-sizing:border-box}
+  .dm-opt input[type=checkbox]:checked{border-color:var(--acc);background:var(--acc-a18)}
+  .dm-opt input[type=checkbox]:checked::after{content:'✓';position:absolute;inset:0;display:flex;
+    align-items:center;justify-content:center;font-size:11px;line-height:1;color:var(--acc);font-weight:700}
+  .dm-opt input[type=checkbox]:focus-visible{box-shadow:0 0 0 3px var(--acc-a22)}
+  .dm-opt.dm-switch{border-top:1px solid var(--p3-line2);border-radius:0;margin-top:2px;padding-top:9px}
+  .dm-chars{border-top:1px solid var(--p3-line2);margin-top:2px;padding:9px 8px 2px}
+  .dm-chars>b{display:block;font-size:13px;color:var(--p3-fg);font-weight:600}
+  .dm-chars>i{display:block;font-size:11.5px;color:var(--p3-dim);font-style:normal;line-height:1.45;margin-top:2px}
+  .dm-chars-row{display:flex;align-items:center;gap:6px;margin-top:7px}
+  .dm-chars-row input{width:82px;padding:5px 8px;font-size:13px}
+  .dm-chars-row span{font-size:12px;color:var(--p3-dim)}
+  .dm-opt b{display:block;font-size:13px;color:var(--p3-fg);font-weight:600}
+  .dm-opt i{display:block;font-size:11.5px;color:var(--p3-dim);font-style:normal;line-height:1.45;margin-top:2px}
+  .dm-pop-note{margin-top:9px;padding-top:8px;border-top:1px solid var(--p3-line2);
+    font-size:11px;line-height:1.55;color:var(--p3-dim2)}
+  #runbar{grid-column:1/-1;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  #runbar .big{font-size:16px;padding:14px 30px;border-radius:12px}
+  #log{
+    background:var(--log-bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;
+    height:290px;overflow:auto;font:12px/1.65 Consolas,"Courier New",monospace;
+  }
+  #log div{white-space:pre-wrap;word-break:break-all}
+  .l-ok{color:var(--log-ok)} .l-warn{color:var(--log-warn)} .l-error{color:var(--log-err)}
+  .l-step{color:var(--log-step)} .l-info{color:var(--log-info)}
+  .l-time{color:var(--log-time)}
+
+  /* 右上角内嵌日志小窗: 底下那块日志滚出视野时自动弹出来
+     可以拖动标题栏换个位置, 也可以拖右下角改大小(位置/尺寸记在 localStorage) */
+  #logMini{position:fixed;top:62px;right:18px;z-index:70;width:392px;height:264px;
+    min-width:260px;min-height:120px;max-width:calc(100vw - 36px);max-height:calc(100vh - 80px);
+    resize:both;overflow:hidden;
+    background:rgba(10,16,23,.97);border:1px solid var(--p3-line);border-radius:12px;
+    box-shadow:0 18px 46px rgba(0,0,0,.6);backdrop-filter:blur(6px);
+    display:flex;flex-direction:column;animation:miniIn .16s ease-out}
+  @keyframes miniIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+  #logMini[hidden]{display:none}
+  #logMini.drag{transition:none;cursor:grabbing}
+  #logMini.empty:not(.dock){height:132px}
+  #logMini.dock{width:auto;height:auto;min-width:0;min-height:0;max-width:none;max-height:none;resize:none}
+  #logMini.dock .logmini-body,#logMini.dock .logmini-foot{display:none}
+  .logmini-head{display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:move;
+    background:var(--panel2);border-bottom:1px solid var(--hair);user-select:none}
+  #logMini.dock .logmini-head{border-bottom:0}
+  .logmini-head:hover{background:var(--panel3-2)}
+  .logmini-dot{width:8px;height:8px;border-radius:50%;background:var(--live-off);flex:0 0 auto;transition:.2s}
+  .logmini-dot.live{background:var(--live);box-shadow:0 0 0 3px var(--live-a18);animation:miniPulse 1.6s infinite}
+  @keyframes miniPulse{50%{opacity:.45}}
+  .logmini-t{font-size:12.5px;font-weight:600;color:var(--txt);white-space:nowrap}
+  .logmini-n{font-size:11px;color:var(--dim);flex:1;white-space:nowrap}
+  .logmini-x{border:0;background:transparent;color:var(--dim);font-size:14px;padding:2px 5px;cursor:pointer;
+    line-height:1;border-radius:6px;min-width:0;width:auto}
+  .logmini-x:hover{color:var(--fg-hi);background:var(--panel3-2)}
+  .logmini-body{flex:1 1 auto;min-height:0;overflow:auto;padding:8px 10px;background:var(--log-bg);
+    font:12px/1.6 Consolas,"Courier New",monospace}
+  .logmini-body div{white-space:pre-wrap;word-break:break-all}
+  .logmini-body .kv{padding:6px 0}
+  #logMini.empty:not(.dock) .logmini-body{flex:0 0 58px;display:flex;align-items:center}
+  .logmini-foot{padding:5px 10px;border-top:1px solid var(--hair);display:flex;gap:14px;align-items:center;background:var(--panel2)}
+  .logmini-foot a{font-size:11.5px;color:var(--acc);text-decoration:none;cursor:pointer}
+  .logmini-foot a:hover{text-decoration:underline}
+  /* 更新日志弹窗: 顶栏右上角的「更新日志」按钮打开 */
+  #clWrap{position:fixed;inset:0;z-index:120;background:rgba(3,8,13,.72);
+    backdrop-filter:blur(3px);display:flex;align-items:flex-start;justify-content:center;
+    padding:6vh 20px 4vh;animation:miniIn .14s ease-out}
+  #clWrap[hidden]{display:none}
+  .cl-box{width:100%;max-width:820px;max-height:84vh;display:flex;flex-direction:column;
+    background:var(--cl-bg);border:1px solid var(--line);border-radius:14px;
+    box-shadow:0 30px 80px rgba(0,0,0,.7);overflow:hidden}
+  .cl-head{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--cl-panel);
+    border-bottom:1px solid var(--hair)}
+  .cl-head b{font-size:14px;color:var(--txt)}
+  .cl-body{flex:1;overflow:auto;padding:16px 22px;font-size:13px;line-height:1.72;color:var(--cl-txt)}
+  .cl-body h1,.cl-body h2{font-size:16px;margin:20px 0 8px;color:var(--cl-h);font-weight:600}
+  .cl-body h1:first-child,.cl-body h2:first-child{margin-top:0}
+  .cl-body > h1:first-child{display:none}   /* 弹窗标题栏已经有「更新日志」了, 别重复 */
+  .cl-body h3{font-size:14px;margin:16px 0 6px;color:var(--txt)}
+  .cl-body p{margin:8px 0}
+  .cl-body ul{margin:6px 0 10px;padding-left:20px}
+  .cl-body li{margin:3px 0}
+  .cl-body code{background:var(--cl-code-bg);border:1px solid var(--cl-code-line);border-radius:5px;padding:1px 5px;
+    font:12px/1.5 Consolas,"Courier New",monospace;color:var(--cl-code)}
+  .cl-body strong{color:var(--fg-hi);font-weight:600}
+  .cl-body hr{border:0;border-top:1px solid var(--cl-line);margin:16px 0}
+  .cl-body .cl-pill{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;
+    background:var(--cl-pill-bg);color:var(--cl-pill);margin-left:6px;vertical-align:2px}
+  /* 收起来之后留住的小气泡 */
+  #logMiniPill{position:fixed;top:62px;right:18px;z-index:70;width:auto;min-width:0;padding:7px 13px;
+    border-radius:999px;font-size:12.5px;background:var(--panel2);color:var(--txt);border:1px solid var(--p3-line);
+    box-shadow:0 10px 26px rgba(0,0,0,.5);cursor:pointer}
+  #logMiniPill[hidden]{display:none}
+  #logMiniPill:hover{background:var(--panel3-2);color:var(--fg-hi)}
+  #logMiniPill .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--live-off);margin-right:6px;vertical-align:1px}
+  #logMiniPill .dot.live{background:var(--live);animation:miniPulse 1.6s infinite}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--dim);font-weight:500;font-size:12px}
+  .kv{color:var(--dim);font-size:12px}
+  .prev{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px dashed var(--line);background:var(--input-bg);font-size:13px;word-break:break-all}
+  .warnbox{border-color:var(--dry-line);background:var(--dry-bg)}
+  .toast{position:fixed;right:20px;bottom:20px;z-index:99;display:grid;gap:8px}
+  .toast div{padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);box-shadow:0 8px 24px rgba(0,0,0,.4);font-size:13px;max-width:420px}
+  .toast div.err{border-color:var(--danger-line);background:var(--danger-bg)}
+  .toast div.ok{border-color:var(--ok-line);background:var(--ok-bg)}
+  a{color:var(--acc)}
+  .swatches{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+  .swatch{width:88px;border:2px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer;transition:.15s;background:var(--log-bg)}
+  .swatch:hover{transform:translateY(-2px)}
+  .swatch.sel{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-a18)}
+  .swatch .preview{height:46px}
+  .swatch .lbl{padding:4px 6px;font-size:11px;color:var(--dim);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #skinFileWrap{margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+  /* ===== 小窗工作区 ===== */
+  main#workspace{
+    position:relative;display:block;max-width:none;margin:0;padding:0;
+    height:calc(100vh - 58px);overflow:auto;overflow-x:hidden;
+    isolation:isolate;
+  }
+  .win{
+    position:absolute;display:flex;flex-direction:column;
+    background:linear-gradient(160deg,var(--card),var(--card-deep));
+    border:1px solid var(--line);border-radius:14px;
+    /* v1.5: 不能 overflow:hidden —— 会把 ⚙ 悬浮面板这类子面板裁掉。
+       .win-body 自己有圆角+裁剪, 标题栏是方角, 不会露头。 */
+    box-shadow:0 10px 30px rgba(0,0,0,.42);min-width:260px;min-height:44px;
+  }
+  .win[hidden]{display:none}
+  .win.focus{border-color:var(--acc);box-shadow:0 16px 44px rgba(0,0,0,.55),0 0 0 1px var(--acc-a22)}
+  .win-head{
+    display:flex;align-items:center;gap:8px;padding:8px 10px 8px 12px;cursor:move;
+    user-select:none;border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,rgba(255,255,255,.055),transparent);
+  }
+  .win.drag .win-head{cursor:grabbing}
+  .win-t{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .win-n{width:18px;height:18px;border-radius:6px;background:var(--acc2);color:var(--on-acc);
+    display:grid;place-items:center;font-size:11px;font-weight:700;flex:0 0 auto}
+  .win-sp{flex:1}
+  .win-btn{border:0;background:transparent;color:var(--dim);font-size:13px;line-height:1;
+    padding:3px 7px;border-radius:6px;cursor:pointer}
+  .win-btn:hover{background:rgba(255,255,255,.09);color:var(--fg-hi);transform:none}
+  .win-body{flex:1;min-height:0;overflow:auto;padding:14px 16px}
+  .win-body>h2:first-child{display:none}      /* 标题已经搬到窗口头上了 */
+  .win-body>p.hint:first-child{margin-top:0}
+  .win.min .win-body{display:none}
+  /* 操作按钮吸底: 内容再长, 按钮也在这扇窗的底边, 不用先滚滚滚才找得到 */
+  .win-foot{flex:0 0 auto;padding:10px 16px;border-top:1px solid var(--line);
+    background:rgba(0,0,0,.18);display:flex;gap:8px;align-items:center;border-radius:0 0 13px 13px}
+  .win.min .win-foot{display:none}
+  .win-grip{position:absolute;right:0;bottom:0;width:15px;height:15px;cursor:nwse-resize;
+    background:linear-gradient(135deg,transparent 45%,var(--line) 45%,var(--line) 58%,transparent 58%,transparent 71%,var(--line) 71%,var(--line) 84%,transparent 84%)}
+  #wsSpacer{width:1px;pointer-events:none;opacity:0}
+
+  /* 顶栏「窗口」下拉 */
+  .winmenu-wrap{position:relative}
+  #winPop{
+    position:absolute;top:34px;right:0;z-index:118;width:270px;padding:10px;
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    box-shadow:0 18px 44px rgba(0,0,0,.6);display:grid;gap:2px;
+  }
+  #winPop[hidden]{display:none}
+  #winPop .wp-t{font-size:11px;color:var(--dim);padding:2px 4px 6px}
+  #winPop label{display:flex;align-items:center;gap:8px;margin:0;padding:6px 6px;border-radius:7px;
+    font-size:12.5px;color:var(--txt);cursor:pointer}
+  #winPop label:hover{background:rgba(255,255,255,.06)}
+  #winPop label input{width:14px;height:14px;flex:0 0 auto;margin:0;appearance:none;
+    border:1.5px solid var(--p3-line);border-radius:4px;background:var(--p3-input);position:relative}
+  #winPop label input:checked{background:var(--acc);border-color:var(--acc)}
+  #winPop label input:checked::after{content:'';position:absolute;left:3px;top:0.5px;width:5px;height:9px;
+    border:2px solid var(--on-acc);border-top:0;border-left:0;transform:rotate(42deg)}
+  #winPop .wp-acts{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;padding-top:8px;border-top:1px solid var(--line)}
+  #winPop .wp-acts button{padding:6px 4px;font-size:12px;white-space:nowrap}
+
+  /* 全部关掉后右上角的唤出气泡 */
+  #recallPill{
+    position:fixed;top:64px;right:18px;z-index:96;padding:9px 15px;border-radius:999px;
+    background:var(--panel);border:1px solid var(--line);color:var(--txt);font-size:13px;
+    cursor:pointer;box-shadow:0 10px 28px rgba(0,0,0,.5);backdrop-filter:blur(6px)
+  }
+  #recallPill[hidden]{display:none}
+  #recallPill:hover{border-color:var(--acc);color:var(--fg-hi);transform:none}
+  #recallPill b{color:var(--acc)}
+
+  /* 终端 */
+  #termWin{
+    position:fixed;top:74px;right:22px;z-index:112;width:640px;height:390px;
+    display:flex;flex-direction:column;background:var(--term-bg);border:1px solid var(--line);
+    border-radius:12px;box-shadow:0 22px 60px rgba(0,0,0,.66);overflow:hidden;
+    min-width:340px;min-height:190px;resize:both;
+  }
+  #termWin[hidden]{display:none}
+  #termWin .win-head{background:linear-gradient(180deg,rgba(255,255,255,.055),transparent)}
+  #termCwd{margin-left:10px}
+  .term-body{flex:1;min-height:0;overflow:auto;padding:8px 10px 4px;cursor:text}
+  .term-out{font-family:ui-monospace,Consolas,'Cascadia Mono',monospace;font-size:12px;line-height:1.55;
+    white-space:pre-wrap;word-break:break-word}
+  .term-out .tl{display:flex;gap:8px}
+  .term-out .tl .t{color:var(--term-time);flex:0 0 auto}
+  .term-out .tl .x{flex:1;min-width:0}
+  .term-out .s-out .x{color:var(--term-out)}
+  .term-out .s-err .x{color:var(--term-err)}
+  .term-out .s-sys .x{color:var(--term-sys)}
+  .term-out .s-in .x{color:var(--term-in)}
+  .term-inbar{display:flex;align-items:center;gap:8px;padding:8px 10px;border-top:1px solid var(--line);
+    background:rgba(255,255,255,.03)}
+  .term-prompt{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--term-prompt)}
+  #termIn{flex:1;margin:0;padding:6px 9px;font-family:ui-monospace,Consolas,monospace;font-size:12px;
+    background:var(--term-bg);border:1px solid var(--line);border-radius:7px}
+  .term-inbar button{flex:0 0 auto}
+
+  /* 主题色 */
+  .theme-swatches{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .theme-sw{width:34px;height:34px;border-radius:50%;cursor:pointer;border:2px solid var(--line);
+    position:relative;transition:.15s}
+  .theme-sw:hover{transform:translateY(-2px)}
+  .theme-sw.sel{border-color:var(--txt);box-shadow:0 0 0 3px rgba(255,255,255,.12)}
+  .theme-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .theme-acts button{padding:6px 11px;font-size:12px}
+  /* 自定义配色编辑器: 每组一行, 左边色块右边名字 */
+  #themeEditor{margin-top:10px;border:1px solid var(--line);border-radius:12px;
+    background:var(--input-bg);padding:10px 12px}
+  #themeEditor[hidden]{display:none}
+  .te-gt{font-size:11px;color:var(--dim);margin:10px 0 6px;letter-spacing:.5px}
+  .te-gt:first-child{margin-top:0}
+  .te-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:6px 10px}
+  .te-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--txt);min-width:0;
+    padding:3px 5px;border-radius:7px;cursor:pointer}
+  .te-row:hover{background:var(--item-hover)}
+  .te-row.picking{background:var(--acc-a18);outline:1px solid var(--acc-a22)}
+  /* 色块: 自己画的, 不依赖原生取色器的渲染(有的环境只画一个空框) */
+  .te-chip{display:block;width:26px;height:22px;min-width:26px;flex:0 0 26px;border-radius:6px;
+    border:1px solid var(--line);cursor:pointer;box-sizing:border-box}
+  .te-row:hover .te-chip,.te-row.picking .te-chip{outline:2px solid var(--acc-a22);outline-offset:1px}
+  /* 原生取色器藏起来, 只当「系统调色板」用; 不能用 display:none, 否则弹不出来 */
+  .te-native{position:absolute;width:1px;height:1px;min-width:0;padding:0;border:0;opacity:0;
+    pointer-events:none;left:-9999px}
+  .te-row>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dim)}
+  .te-row.picking>span:last-child{color:var(--txt)}
+  #teOut{margin-top:8px;font:11px/1.5 ui-monospace,Consolas,monospace;color:var(--dim);
+    max-height:110px;overflow:auto;white-space:pre-wrap;word-break:break-all}
+
+  /* ---- 取色面板(点左边色块弹出来的那一片) ---- */
+  .cp-pop{position:fixed;z-index:210;width:264px;padding:11px 12px 10px;border-radius:13px;
+    background:var(--panel);border:1px solid var(--line);box-sizing:border-box;
+    box-shadow:0 18px 44px rgba(0,0,0,.55);display:flex;flex-direction:column;gap:9px}
+  .cp-pop[hidden]{display:none}
+  .cp-head{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--txt)}
+  .cp-head b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cp-head code{font:10px/1 ui-monospace,Consolas,monospace;color:var(--dim);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;text-align:right}
+  .cp-x{margin-left:4px;flex:0 0 auto;width:20px;height:20px;padding:0;border-radius:6px;
+    border:1px solid var(--line);background:transparent;color:var(--dim);cursor:pointer;
+    font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center}
+  .cp-x:hover{color:var(--txt);border-color:var(--acc)}
+  .cp-big{height:34px;border-radius:9px;border:1px solid var(--line);box-sizing:border-box}
+  .cp-sect{font-size:10.5px;color:var(--dim2,var(--dim));letter-spacing:.5px}
+  .cp-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:5px}
+  .cp-sw{height:19px;border-radius:5px;border:1px solid var(--line);cursor:pointer;
+    box-sizing:border-box;transition:transform .1s}
+  .cp-sw:hover{transform:scale(1.16);outline:2px solid var(--acc-a22);outline-offset:1px}
+  .cp-sw.sel{box-shadow:inset 0 0 0 2px rgba(255,255,255,.85),0 0 0 2px var(--acc)}
+  .cp-field{display:flex;align-items:center;gap:7px}
+  .cp-field input[type=text]{flex:1;min-width:0;font:12px/1.4 ui-monospace,Consolas,monospace;
+    letter-spacing:.3px;padding:6px 8px;box-sizing:border-box}
+  .cp-field input[type=text].bad{border-color:var(--err);color:var(--err)}
+  .cp-field button{padding:6px 10px;font-size:12px;flex:0 0 auto}
+  .cp-foot{display:flex;gap:7px;flex-wrap:wrap;font-size:11px}
+  .cp-foot button{padding:4px 8px;font-size:11px}
+  .cp-err{font-size:11px;color:var(--err);min-height:0}
+  /* 透明度: --acc 这类会被用到半透明场景, 但主色本身是实色, 这里只做亮度微调 */
+  .cp-tri{display:flex;gap:5px}
+  .cp-tri button{flex:1;padding:4px 0;font-size:11px}
+</style>
+</head>
+<body>
+<!-- WHALE:BEGIN -->
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+  <symbol id="whaleGirl" viewBox="0 0 200 200">
+  <defs>
+      <linearGradient id="wh-hair" x1="0.2" y1="0" x2="0.5" y2="1">
+        <stop offset="0" stop-color="#2b52d8"/>
+        <stop offset="0.42" stop-color="#3a74e6"/>
+        <stop offset="1" stop-color="#63c8f2"/>
+      </linearGradient>
+      <linearGradient id="wh-hairBack" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#1c3aa4"/>
+        <stop offset="1" stop-color="#2f7cc6"/>
+      </linearGradient>
+      <linearGradient id="wh-skin" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#fff6f1"/>
+        <stop offset="1" stop-color="#ffe4d9"/>
+      </linearGradient>
+      <linearGradient id="wh-eye" x1="0" y1="0" x2="0.15" y2="1">
+        <stop offset="0" stop-color="#1b3cb4"/>
+        <stop offset="0.5" stop-color="#2d6cdd"/>
+        <stop offset="1" stop-color="#6fd6ff"/>
+      </linearGradient>
+      <linearGradient id="wh-frill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ffffff"/>
+        <stop offset="1" stop-color="#e2eefa"/>
+      </linearGradient>
+      <linearGradient id="wh-fin" x1="0" y1="0" x2="1" y2="0.6">
+        <stop offset="0" stop-color="#3a6fe0"/>
+        <stop offset="1" stop-color="#1d3ca8"/>
+      </linearGradient>
+      <radialGradient id="wh-glow" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="#3fd3c6" stop-opacity="0.26"/>
+        <stop offset="1" stop-color="#3fd3c6" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+
+    <circle cx="100" cy="100" r="98" fill="url(#wh-glow)"/>
+
+    <!-- ===== 后发 ===== -->
+    <path d="M100 26 C58 26 34 58 34 100 C34 128 40 150 50 170
+             C56 160 60 146 62 134 C66 152 72 166 80 176
+             C82 160 84 146 86 136 C92 152 96 160 100 164
+             C104 160 108 152 114 136 C116 146 118 160 120 176
+             C128 166 134 152 138 134 C140 146 144 160 150 170
+             C160 150 166 128 166 100 C166 58 142 26 100 26 Z"
+          fill="url(#wh-hairBack)"/>
+
+    <!-- ===== 鲸鱼鳍耳：贴着后发根部长出来的扇形 ===== -->
+    <g stroke="#16308c" stroke-width="1" stroke-linejoin="round">
+      <path d="M44 86 C34 76 20 72 6 78 C2 88 8 100 20 106 C30 110 40 106 46 98 Z" fill="url(#wh-fin)"/>
+      <path d="M156 86 C166 76 180 72 194 78 C198 88 192 100 180 106 C170 110 160 106 154 98 Z" fill="url(#wh-fin)"/>
+    </g>
+    <g fill="none" stroke="#8fd8f0" stroke-width="1.1" opacity="0.75" stroke-linecap="round">
+      <path d="M42 90 C30 84 18 82 8 84"/>
+      <path d="M42 98 C31 95 20 95 11 98"/>
+      <path d="M158 90 C170 84 182 82 192 84"/>
+      <path d="M158 98 C169 95 180 95 189 98"/>
+    </g>
+
+    <!-- ===== 脸 ===== -->
+    <ellipse cx="100" cy="107" rx="41" ry="43" fill="url(#wh-skin)"/>
+
+    <!-- ===== 白色蕾丝发箍：戴在头顶、被刘海压住一半 =====
+         一条带包边的弧带，下沿描一圈波浪褶边，不用圆点(圆点叠起来像一串珍珠)。 -->
+    <g>
+      <path d="M40 84 C44 48 68 26 100 26 C132 26 156 48 160 84
+               C153 76 144 70 133 66 C121 61 111 59 100 59 C89 59 79 61 67 66
+               C56 70 47 76 40 84 Z"
+            fill="url(#wh-frill)" stroke="#cfdfee" stroke-width="1" stroke-linejoin="round"/>
+      <!-- 波浪褶：沿内侧下沿的一排半圆 -->
+      <path d="M44 80 q5 7 9 0 q5 7 9 0 q5 7 9 0 q5 7 9 0 q5 7 9 0
+               q5 7 9 0 q5 7 9 0 q5 7 9 0 q5 7 9 0 q5 7 9 0
+               q5 7 9 0 q5 7 9 0 q3 5 5 0"
+            fill="none" stroke="#d3e2f0" stroke-width="1.7" stroke-linecap="round"/>
+      <!-- 一条高光, 让发箍有厚度 -->
+      <path d="M46 78 C51 50 71 35 100 35 C129 35 149 50 154 78"
+            fill="none" stroke="#ffffff" stroke-width="1.6" opacity="0.95" stroke-linecap="round"/>
+    </g>
+
+    <!-- ===== 刘海：整片压在发箍下沿之上，中分 + 侧分 ===== -->
+    <path d="M100 44
+             C70 44 49 64 46 96
+             C52 92 58 90 63 90
+             C57 80 57 70 60 62
+             C68 84 79 95 91 100
+             C83 87 80 75 82 65
+             C89 92 100 103 110 103
+             C105 90 103 78 104 67
+             C113 92 125 101 137 101
+             C133 88 133 76 136 65
+             C144 79 151 87 155 91
+             C155 72 150 59 142 51
+             C130 46 116 44 100 44 Z"
+          fill="url(#wh-hair)"/>
+    <!-- 发丝的暗部：几道顺着走向的细线, 免得整块发片是一坨平色 -->
+    <g fill="none" stroke="#2a4bbd" stroke-width="1.5" opacity="0.55" stroke-linecap="round">
+      <path d="M62 62 C68 76 76 88 86 96"/>
+      <path d="M104 66 C110 82 120 94 132 100"/>
+      <path d="M100 50 C100 62 100 72 100 80"/>
+    </g>
+    <g fill="none" stroke="#7fd4f5" stroke-width="1.2" opacity="0.5" stroke-linecap="round">
+      <path d="M56 70 C62 84 70 94 80 100"/>
+      <path d="M138 68 C132 82 124 94 114 101"/>
+    </g>
+    <!-- 两侧鬓发 -->
+    <path d="M45 92 C39 110 39 128 45 144 C51 133 56 119 57 105 Z" fill="url(#wh-hair)"/>
+    <path d="M155 92 C161 110 161 128 155 144 C149 133 144 119 143 105 Z" fill="url(#wh-hair)"/>
+
+    <!-- ===== 青色蝴蝶结：别在发箍右侧 ===== -->
+    <g transform="translate(150 70) rotate(24)">
+      <path d="M0 0 C-9 -8 -19 -6 -19 0 C-19 6 -9 8 0 0 Z" fill="#46e2d1" stroke="#1fb3a3" stroke-width="0.8"/>
+      <path d="M0 0 C9 -8 19 -6 19 0 C19 6 9 8 0 0 Z" fill="#46e2d1" stroke="#1fb3a3" stroke-width="0.8"/>
+      <ellipse cx="-10" cy="-2" rx="5" ry="2.2" fill="#9bf5e9" opacity="0.8"/>
+      <ellipse cx="10" cy="-2" rx="5" ry="2.2" fill="#9bf5e9" opacity="0.8"/>
+      <circle cx="0" cy="0" r="3.6" fill="#7ff0e2" stroke="#1fb3a3" stroke-width="0.8"/>
+    </g>
+
+    <!-- ===== 眼睛 ===== -->
+    <ellipse cx="79" cy="110" rx="10.8" ry="13" fill="#20306c"/>
+    <ellipse cx="121" cy="110" rx="10.8" ry="13" fill="#20306c"/>
+    <ellipse cx="79" cy="111" rx="9.2" ry="11.4" fill="url(#wh-eye)"/>
+    <ellipse cx="121" cy="111" rx="9.2" ry="11.4" fill="url(#wh-eye)"/>
+    <ellipse cx="79" cy="116" rx="6.6" ry="6.2" fill="#a9ecff" opacity="0.55"/>
+    <ellipse cx="121" cy="116" rx="6.6" ry="6.2" fill="#a9ecff" opacity="0.55"/>
+    <circle cx="82.6" cy="104" r="3.5" fill="#ffffff"/>
+    <circle cx="124.6" cy="104" r="3.5" fill="#ffffff"/>
+    <circle cx="76" cy="116" r="1.9" fill="#ffffff" opacity="0.85"/>
+    <circle cx="118" cy="116" r="1.9" fill="#ffffff" opacity="0.85"/>
+    <path d="M68.5 101 C73 96 78.5 94 84.5 95" fill="none" stroke="#20306c" stroke-width="1.9" stroke-linecap="round"/>
+    <path d="M131.5 101 C127 96 121.5 94 115.5 95" fill="none" stroke="#20306c" stroke-width="1.9" stroke-linecap="round"/>
+
+    <!-- ===== 腮红 ===== -->
+    <ellipse cx="63" cy="124" rx="8.2" ry="4.8" fill="#ff9db4" opacity="0.5"/>
+    <ellipse cx="137" cy="124" rx="8.2" ry="4.8" fill="#ff9db4" opacity="0.5"/>
+
+    <!-- ===== 嘴 ===== -->
+    <path d="M93 128 C96.5 134 103.5 134 107 128" fill="none" stroke="#c4586f" stroke-width="2" stroke-linecap="round"/>
+
+    <!-- ===== 高领 ===== -->
+    <path d="M75 143 C82 152 118 152 125 143 C125 155 75 155 75 143 Z" fill="#eef5fb" opacity="0.92"/>
+  </symbol>
+</svg>
+<!-- WHALE:END -->
+<header>
+  <h1>
+    <svg class="whale-ava" viewBox="0 0 200 200" aria-hidden="true"><use href="#whaleGirl"/></svg>
+    蓝色大肥鱼 · <span>自动化搬史</span>
+  </h1>
+  <span id="modeBadge" class="badge dry">干跑模式</span>
+  <span id="runBadge" class="badge">空闲</span>
+  <span id="accBadge" class="badge">无账户</span>
+  <span id="verBadge" class="badge">v-</span>
+  <span class="spacer"></span>
+  <span class="kv" id="todayStat">今日已发 0 条</span>
+  <span class="winmenu-wrap">
+    <button class="sm" id="winMenuBtn" onclick="toggleWinMenu(event)" title="显示/隐藏各个小窗">▦ 窗口</button>
+    <div id="winPop" hidden>
+      <div class="wp-t">点一下开 / 关这个窗口</div>
+      <div id="winPopList"></div>
+      <div class="wp-acts">
+        <button class="sm" onclick="showAllWins()">全部显示</button>
+        <button class="sm" onclick="tileAllWins()" title="把所有窗口重新排到当前屏幕内">排回屏幕</button>
+        <button class="sm" onclick="collapseAllWins()">全部收起</button>
+        <button class="sm" onclick="resetWinLayout()">重置布局</button>
+      </div>
+    </div>
+  </span>
+  <button class="sm" id="termBtn" onclick="showTerm()" title="打开终端：看服务端输出、直接在项目目录敲门命令">▣ 终端</button>
+  <button class="sm" onclick="openChangelog()" title="看看这个版本改了什么">更新日志</button>
+  <button class="sm" onclick="clearLogs()">清空日志</button>
+  <button class="sm danger" onclick="shutdownConsole()" title="关闭后端服务，关掉后这个页面就不能用了">⏻ 关闭控制台</button>
+</header>
+
+<button id="recallPill" hidden onclick="recallAllWins()">⤢ 唤出<b>控制台</b></button>
+
+<main id="workspace">
+  <!-- 运行条 -->
+  <div class="card wide" id="runbar">
+    <button id="runBtn" class="primary big" onclick="runNow()">▶ 立即执行任务</button>
+    <button id="stopBtn" class="danger" onclick="stopTask()">■ 停止</button>
+    <span class="kv" id="runInfo">按下后按设置跑一轮</span>
+  </div>
+
+  <!-- 1 账户 -->
+  <section class="card">
+    <h2><span class="n">1</span>账户（cookie）</h2>
+    <p class="hint">粘<b>整串请求头</b>或 <code>document.cookie</code> 都行。自动关键词定位 SESSDATA / bili_jct / buvid3 / DedeUserID，大小写、换行、引号、<code>名: 值</code> 格式都能认。</p>
+    <label>备注名</label>
+    <input id="accName" placeholder="例如：Yaprussia 的号">
+    <label>Cookie 整串 / 请求头原文 / 只填 SESSDATA</label>
+    <textarea id="accCookie" rows="4" placeholder="Cookie: SESSDATA=xxx; bili_jct=xxx; buvid3=xxx; DedeUserID=xxx&#10;（也可以直接整段粘 F12 → Network → 请求头）"></textarea>
+    <div class="row" style="margin-top:10px">
+      <button class="primary" onclick="addAccount()">＋ 添加并测试</button>
+    </div>
+    <div class="list" id="accList"></div>
+    <div class="row" style="margin-top:8px"><button class="sm" onclick="checkAllAccounts(true)">⟳ 全部验活</button></div>
+  </section>
+
+  <!-- 2 @名单 -->
+  <section class="card">
+    <h2><span class="n">2</span>@ 名单</h2>
+    <p class="hint">填昵称自动查 mid（重名会取完全匹配的那个）。勾选=参与本次 @。</p>
+    <div class="row">
+      <div><label>昵称</label><input id="mUname" placeholder="例如：Yaprussia"></div>
+      <div style="max-width:120px"><label>mid（可留空）</label><input id="mMid" placeholder="自动"></div>
+      <button onclick="addMention()">＋ 添加</button>
+      <button onclick="resolveUser()">🔍 先搜一下</button>
+    </div>
+    <div class="list" id="menList"></div>
+    <div id="searchResult"></div>
+  </section>
+
+  <!-- 3 内容偏好 -->
+  <section class="card">
+    <h2><span class="n">3</span>内容偏好（想搬什么史）</h2>
+    <p class="hint">随便用大白话写，DeepSeek 会把它变成 B 站搜索关键词。</p>
+    <textarea id="contentPref" placeholder="例如：无厘头搞笑、抽象、年轻人下饭视频"></textarea>
+    <div class="row" style="margin-top:10px">
+      <button onclick="saveSettings()">保存</button>
+      <button class="primary" onclick="analyze()">🧠 用 DS 分析并试搜</button>
+    </div>
+    <div id="analysisOut"></div>
+  </section>
+
+  <!-- 4 风格与署名 -->
+  <section class="card">
+    <h2><span class="n">4</span>问候语风格 &amp; 署名</h2>
+    <p class="hint">风格也是自然语言描述，发言时 DS 会参考它来写（正文默认 ≤20 字）。</p>
+    <label>风格描述</label>
+    <textarea id="stylePref" placeholder="例如：暖一点，像小鲸鱼撒娇，简短自然"></textarea>
+    <label>署名（会自动加破折号）</label>
+    <input id="signature" placeholder="笨蛋鲸鱼娘">
+    <div class="row" style="margin-top:10px">
+      <button onclick="saveSettings()">保存</button>
+      <button onclick="preview()">👀 预览一条</button>
+    </div>
+    <div id="previewOut"></div>
+  </section>
+
+  <!-- 5 任务参数 -->
+  <section class="card">
+    <h2><span class="n">5</span>任务参数</h2>
+    <p class="hint">这些参数同时作用于"立即执行"和"自动任务"。</p>
+    <div class="taskbox">
+      <div><label>视频来源</label>
+        <select id="videoSource" onchange="saveSettings()">
+          <option value="search">按偏好搜索</option>
+          <option value="manual">手动指定 BV 号</option>
+        </select>
+      </div>
+      <div><label>每次跑几条视频</label><input id="videosPerRun" type="number" min="1" max="20"></div>
+      <div><label>每条间隔（秒）</label><input id="delaySeconds" type="number" min="3" max="600"></div>
+      <div><label>搜索翻几页</label><input id="searchPages" type="number" min="1" max="5"></div>
+      <div><label>每日上限（条）</label><input id="dailyLimit" type="number" min="1" max="100"></div>
+    </div>
+    <label>手动模式的 BV 号（逗号或换行分隔）</label>
+    <textarea id="manualBvids" placeholder="BV1Qiai6KEAB, BV1LEYP6pEwQ"></textarea>
+    <div class="chk">
+      <input type="checkbox" id="dryRun" onchange="saveSettings()">
+      <label for="dryRun" style="margin:0">干跑模式（只预览、不真的发送）</label>
+    </div>
+    <div class="chk">
+      <input type="checkbox" id="dmMode" onchange="saveSettings()">
+      <label for="dmMode" style="margin:0">私信模式（私信给大家，不在评论区发）</label>
+      <span class="dmgear-wrap">
+        <button class="dm-gear" id="dmSetBtn" type="button" title="私信形态设置" aria-label="私信形态设置" onclick="toggleDmPop(event)">⚙</button>
+        <div class="dm-pop" id="dmPop" hidden>
+          <div class="dm-pop-t">私信发成什么样</div>
+          <label class="dm-opt">
+            <input type="radio" name="dmForm" value="card" onchange="saveSettings()">
+            <span><b>原生卡片</b><i>视频分享卡片，标题见下面那个开关；被 B 站拒了自动降级成文字</i></span>
+          </label>
+          <label class="dm-opt">
+            <input type="radio" name="dmForm" value="texturl" onchange="saveSettings()">
+            <span><b>文本 + 链接</b><i>纯文字私信，末尾附上那条视频的链接</i></span>
+          </label>
+          <label class="dm-opt dm-switch">
+            <input type="checkbox" id="dmTitle" onchange="saveSettings()">
+            <span><b>带上视频标题</b><i>文字私信里多一行《标题》；原生卡片则用视频真名当卡片标题</i></span>
+          </label>
+          <div class="dm-chars">
+            <label for="dmMaxChars"><b>正文字数上限</b><i>只算正文，@昵称和署名不计入；超了自动截到最后一个分句</i></label>
+            <div class="dm-chars-row">
+              <input type="number" id="dmMaxChars" min="10" max="400" step="5" value="40" onchange="saveSettings()">
+              <span>字</span>
+            </div>
+          </div>
+          <div class="dm-pop-note">私信模式下「每次跑几条」＝最多发给几个人；<br>保持 1 就是名单里能发的人都发一遍。</div>
+        </div>
+      </span>
+    </div>
+    <div class="row" style="margin-top:10px"><button onclick="saveSettings()">保存参数</button></div>
+  </section>
+
+  <!-- 6 自动任务 -->
+  <section class="card">
+    <h2><span class="n">6</span>自动任务</h2>
+    <p class="hint">周期计时：每 N 分钟跑一次。闹钟模式：指定日期+时刻，可只跑一次或每天重复。</p>
+    <div class="row">
+      <div><label>任务名</label><input id="schName" placeholder="每天早安史"></div>
+      <div style="max-width:140px"><label>类型</label>
+        <select id="schMode" onchange="toggleSchMode()">
+          <option value="interval">周期计时</option>
+          <option value="clock">闹钟模式</option>
+        </select>
+      </div>
+      <div style="max-width:130px"><label>每 N 分钟</label><input id="schEvery" type="number" min="1" value="60"></div>
+      <div style="max-width:160px"><label>日期（闹钟）</label><input id="schDate" type="date"></div>
+      <div style="max-width:130px"><label>时刻（闹钟）</label><input id="schAt" type="time" value="09:00"></div>
+      <div style="max-width:110px"><label>每次几条</label><input id="schCount" type="number" min="1" value="1"></div>
+    </div>
+    <div class="chk"><input type="checkbox" id="schDaily" checked><label for="schDaily" style="margin:0">闹钟模式每天重复（不勾=只跑一次）</label></div>
+    <div class="chk"><input type="checkbox" id="schDry" checked><label for="schDry" style="margin:0">这个自动任务用干跑</label></div>
+    <div class="chk"><input type="checkbox" id="schDm"><label for="schDm" style="margin:0">这个自动任务发私信（不勾＝发评论）</label></div>
+    <div class="row" style="margin-top:10px"><button class="primary" onclick="addSchedule()">＋ 创建自动任务</button></div>
+    <div class="list" id="schList"></div>
+  </section>
+
+  <!-- 7 AI 接口 -->
+  <section class="card">
+    <h2><span class="n">7</span>AI 接口（OpenAI 兼容）</h2>
+    <p class="hint">
+      走标准 <code>POST {Base URL}/chat/completions</code> + <code>Authorization: Bearer &lt;key&gt;</code>，
+      所以任何 OpenAI 兼容的供应商都能用。<b>Key 只存在内存里、不写配置文件</b>。
+    </p>
+    <div class="prev" id="dsStatus">读取中…</div>
+
+    <label>供应商预设（点一下自动填 Base URL 和模型，可再手改）</label>
+    <div class="row">
+      <div><select id="dsPreset" onchange="applyPreset()"><option value="">— 手动填写 / 保持不变 —</option></select></div>
+    </div>
+
+    <label>API Key（留空 = 用上面显示的，填了只覆盖本次运行）</label>
+    <input id="dsKey" type="password" placeholder="留空即可，或粘贴新的 sk-...">
+    <label>自动读取的凭据名（存在 <code>~/.dsh/.credentials.yaml</code> 的 refs 段或同名环境变量里）</label>
+    <input id="dsKeyRef" placeholder="DEEPSEEK_API_KEY">
+    <p class="hint" style="margin:6px 0 0">
+      填了凭据名，之后重启就不用再粘 Key —— 程序每次启动会自动去凭据文件里读。
+      找不到时会在下面提示凭据文件里到底有哪些可用名字。
+    </p>
+    <div class="row" style="margin-top:10px">
+      <div><label>模型</label><input id="dsModel" placeholder="deepseek-chat"></div>
+      <div><label>鉴权方式</label>
+        <select id="dsAuthMode">
+          <option value="bearer">Bearer（标准，默认）</option>
+          <option value="api-key">api-key 请求头（Azure）</option>
+          <option value="x-api-key">x-api-key 请求头</option>
+          <option value="none">不加鉴权（本地 Ollama / LM Studio）</option>
+        </select>
+      </div>
+    </div>
+    <label>Base URL</label>
+    <input id="dsBase" placeholder="https://api.deepseek.com">
+    <p class="hint" style="margin:6px 0 0">
+      会自动补 <code>/chat/completions</code>；粘完整端点也没关系，重复的后缀会被自动剥掉。
+      阿里通义要写 <code>.../compatible-mode/v1</code>，OpenAI 要写 <code>https://api.openai.com/v1</code>。
+    </p>
+
+    <label>完整端点（可选，填了就完全覆盖上面的拼装，支持带 <code>?api-version=</code>）</label>
+    <input id="dsEndpoint" placeholder="留空即可，例如 https://xxx.openai.azure.com/openai/deployments/xxx/chat/completions?api-version=2024-06-01">
+
+    <label>额外请求头（可选，每行一个 <code>Name: value</code>）</label>
+    <textarea id="dsExtraHeaders" rows="2" placeholder="HTTP-Referer: https://example.com&#10;X-Title: bili-studio"></textarea>
+
+    <div class="row win-keep" style="margin-top:10px">
+      <button onclick="saveSettings()">保存</button>
+      <button onclick="testDS()">🔌 测试连通</button>
+    </div>
+    <div id="dsTestOut"></div>
+  </section>
+
+  <!-- 皮肤 & 主题色 -->
+  <section class="card">
+    <h2><span class="n">🎨</span>皮肤 &amp; 主题色</h2>
+    <p class="hint">预设配色一键切换；觉得不够就进「逐项配色」自己调——背景、分区底色、按钮、日志各级颜色、终端、更新日志，
+      全部都能改，改完还能存成自定义配色。皮肤是另一回事：导入自己的 PNG 当背景。</p>
+    <label>主题色（预设）</label>
+    <div class="theme-swatches" id="themeSwatches"></div>
+    <div class="theme-acts">
+      <button class="sm" onclick="toggleThemeEditor()" id="teToggleBtn">🎛 逐项配色</button>
+      <button class="sm" onclick="saveCustomTheme()" title="把当前这套颜色存成自定义配色，之后能像预设一样点">💾 存成自定义配色</button>
+      <button class="sm" onclick="resetThemeColors()" title="恢复这个预设的原始颜色（自定义配色会被改回预设）">↺ 恢复预设</button>
+      <button class="sm" onclick="copyThemeCss()" title="复制成 CSS 变量，方便贴到别处">⧉ 复制 CSS</button>
+    </div>
+    <div id="themeEditor" hidden>
+      <div class="te-gt">背景</div><div class="te-grid" id="teBg"></div>
+      <div class="te-gt">分区 / 窗口</div><div class="te-grid" id="teSurface"></div>
+      <div class="te-gt">线条与文字</div><div class="te-grid" id="teText"></div>
+      <div class="te-gt">主色</div><div class="te-grid" id="teAccent"></div>
+      <div class="te-gt">运行日志</div><div class="te-grid" id="teLog"></div>
+      <div class="te-gt">终端</div><div class="te-grid" id="teTerm"></div>
+      <div class="te-gt">更新日志弹窗</div><div class="te-grid" id="teDoc"></div>
+      <div class="te-gt">按钮 / 提示</div><div class="te-grid" id="teMisc"></div>
+      <div id="teOut"></div>
+    </div>
+    <!-- 取色面板: 点左边的色块弹出来, 能敲色码, 也能直接点预设色 -->
+    <div id="cpPop" class="cp-pop" hidden>
+      <div class="cp-head">
+        <b id="cpTitle">颜色</b>
+        <code id="cpVar"></code>
+        <button class="cp-x" onclick="closeColorPop()" title="关闭">✕</button>
+      </div>
+      <div class="cp-big" id="cpPreview"></div>
+      <div class="cp-sect">常用色</div>
+      <div class="cp-grid" id="cpCommon"></div>
+      <div class="cp-sect">同色调（按亮度排）</div>
+      <div class="cp-grid" id="cpShades"></div>
+      <div class="cp-sect">色相</div>
+      <div class="cp-grid" id="cpHues"></div>
+      <div class="cp-field">
+        <input type="text" id="cpHex" spellcheck="false" autocomplete="off"
+          placeholder="#3fd3c6 / 3fd3c6 / #fff" oninput="onColorInput(this.value)"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();commitColorInput();}">
+        <button class="sm" onclick="commitColorInput()">应用</button>
+        <button class="sm" onclick="openNativePicker()" title="打开系统取色器">🖉 系统</button>
+      </div>
+      <div class="cp-err" id="cpErr"></div>
+      <div class="cp-foot">
+        <button class="sm" onclick="adjustColorBrightness(-8)">− 变暗</button>
+        <button class="sm" onclick="adjustColorBrightness(8)">+ 变亮</button>
+        <button class="sm" onclick="resetPickedColor()">↺ 该项默认</button>
+      </div>
+      <input type="color" class="te-native" id="cpNative" oninput="onNativeColor(this.value)">
+    </div>
+    <div class="swatches" id="skinSwatches"></div>
+    <div id="skinFileWrap">
+      <input type="file" id="skinFile" accept="image/png,image/jpeg,image/webp" style="flex:1">
+      <button onclick="uploadSkin()">⬆ 导入并启用</button>
+    </div>
+  </section>
+
+  <!-- 8 日志 -->
+  <section class="card wide">
+    <h2><span class="n">8</span>运行日志</h2>
+    <div id="log"></div>
+  </section>
+
+  <!-- 9 历史 -->
+  <section class="card wide">
+    <h2><span class="n">9</span>任务历史</h2>
+    <!-- 注意: 按钮必须放在 h2 外面。initWins() 把 <h2> 整个 remove 掉做小窗标题,
+         放进 h2 里的按钮会跟着一起消失 -->
+    <div class="hist-bar">
+      <button class="sm" onclick="clearHistoryConfirm()" title="删掉 data/history.jsonl 并把表格清空">🗑 清空历史</button>
+    </div>
+    <table><thead><tr><th>时间</th><th>触发</th><th>计划</th><th>成功</th><th>失败</th><th>跳过</th><th>用时</th></tr></thead>
+    <tbody id="histBody"><tr><td colspan="7" class="kv">还没有跑过任务</td></tr></tbody></table>
+  </section>
+</main>
+
+<!-- 右上角内嵌日志小窗: 底下那块日志滚出视野时自动出现, 点标题栏可收成一条, ✕ 收成气泡 -->
+<div id="logMini" hidden>
+  <div class="logmini-head" onclick="toggleMiniDock(event)" title="点一下收起/展开">
+    <span class="logmini-dot" id="miniDot"></span>
+    <span class="logmini-t">实时日志</span>
+    <span class="logmini-n" id="miniCount">0 条</span>
+    <button class="logmini-x" type="button" onclick="closeLogMini(event)" title="收成小气泡">✕</button>
+  </div>
+  <div class="logmini-body" id="miniLog"><div class="kv" id="miniEmpty">还没有日志 · 跑一次任务就有啦～</div></div>
+  <div class="logmini-foot">
+    <a onclick="gotoFullLog(event)">跳到完整日志 ↓</a>
+    <a onclick="clearLogs()">清空</a>
+  </div>
+</div>
+<button id="logMiniPill" type="button" hidden onclick="openLogMini()"><span class="dot" id="miniPillDot"></span>实时日志</button>
+
+<!-- 终端: 点顶栏「▣ 终端」打开。看得到服务端自己的输出, 也能在项目目录里敲门命令 -->
+<div id="termWin" hidden>
+  <div class="win-head">
+    <span class="win-n">▣</span>
+    <span class="win-t">终端</span>
+    <span class="kv" id="termCwd" style="font-size:11px;max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+    <span style="flex:1"></span>
+    <span class="kv" id="termState" style="font-size:11px"></span>
+    <button class="win-btn" type="button" onclick="termClear()" title="清屏（只清这里显示，不影响服务端）">清</button>
+    <button class="win-btn" type="button" onclick="termStop()" title="停掉正在跑的命令">■</button>
+    <button class="win-btn" type="button" onclick="hideTerm()" title="关掉（再点顶栏「终端」打开）">✕</button>
+  </div>
+  <div class="term-body" id="termBody"><div id="termOut" class="term-out"></div></div>
+  <div class="term-inbar">
+    <span class="term-prompt">$</span>
+    <input id="termIn" autocomplete="off" spellcheck="false" placeholder="敲命令，回车执行。 cd 换目录、cls 清屏、↑↓ 翻历史">
+    <button class="sm primary" type="button" onclick="termRun()">执行</button>
+  </div>
+  <div class="win-grip"></div>
+</div>
+
+<!-- 更新日志弹窗: 点顶栏右上角「更新日志」打开, Esc / 点空白处关闭 -->
+<div id="clWrap" hidden onclick="if(event.target===this)closeChangelog()">
+  <div class="cl-box" role="dialog" aria-modal="true" aria-label="更新日志">
+    <div class="cl-head">
+      <b>更新日志</b>
+      <span class="kv" id="clVer"></span>
+      <span style="flex:1"></span>
+      <button class="logmini-x" type="button" onclick="closeChangelog()" title="关闭">✕</button>
+    </div>
+    <div class="cl-body" id="clBody"><div class="kv">读取中…</div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>

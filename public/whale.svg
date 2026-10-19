@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="鲸鱼娘">
+  <title>鲸鱼娘 · 蓝色大肥鱼</title>
+  <defs>
+    <linearGradient id="hair" x1="0.2" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#2b52d8"/>
+      <stop offset="0.42" stop-color="#3a74e6"/>
+      <stop offset="1" stop-color="#63c8f2"/>
+    </linearGradient>
+    <linearGradient id="hairBack" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1c3aa4"/>
+      <stop offset="1" stop-color="#2f7cc6"/>
+    </linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff6f1"/>
+      <stop offset="1" stop-color="#ffe4d9"/>
+    </linearGradient>
+    <linearGradient id="eye" x1="0" y1="0" x2="0.15" y2="1">
+      <stop offset="0" stop-color="#1b3cb4"/>
+      <stop offset="0.5" stop-color="#2d6cdd"/>
+      <stop offset="1" stop-color="#6fd6ff"/>
+    </linearGradient>
+    <linearGradient id="frill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#e2eefa"/>
+    </linearGradient>
+    <linearGradient id="fin" x1="0" y1="0" x2="1" y2="0.6">
+      <stop offset="0" stop-color="#3a6fe0"/>
+      <stop offset="1" stop-color="#1d3ca8"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#3fd3c6" stop-opacity="0.26"/>
+      <stop offset="1" stop-color="#3fd3c6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <circle cx="100" cy="100" r="98" fill="url(#glow)"/>
+
+  <!-- ===== 后发 ===== -->
+  <path d="M100 26 C58 26 34 58 34 100 C34 128 40 150 50 170
+           C56 160 60 146 62 134 C66 152 72 166 80 176
+           C82 160 84 146 86 136 C92 152 96 160 100 164
+           C104 160 108 152 114 136 C116 146 118 160 120 176
+           C128 166 134 152 138 134 C140 146 144 160 150 170
+           C160 150 166 128 166 100 C166 58 142 26 100 26 Z"
+        fill="url(#hairBack)"/>
+
+  <!-- ===== 鲸鱼鳍耳：贴着后发根部长出来的扇形 ===== -->
+  <g stroke="#16308c" stroke-width="1" stroke-linejoin="round">
+    <path d="M44 86 C34 76 20 72 6 78 C2 88 8 100 20 106 C30 110 40 106 46 98 Z" fill="url(#fin)"/>
+    <path d="M156 86 C166 76 180 72 194 78 C198 88 192 100 180 106 C170 110 160 106 154 98 Z" fill="url(#fin)"/>
+  </g>
+  <g fill="none" stroke="#8fd8f0" stroke-width="1.1" opacity="0.75" stroke-linecap="round">
+    <path d="M42 90 C30 84 18 82 8 84"/>
+    <path d="M42 98 C31 95 20 95 11 98"/>
+    <path d="M158 90 C170 84 182 82 192 84"/>
+    <path d="M158 98 C169 95 180 95 189 98"/>
+  </g>
+
+  <!-- ===== 脸 ===== -->
+  <ellipse cx="100" cy="107" rx="41" ry="43" fill="url(#skin)"/>
+
+  <!-- ===== 白色蕾丝发箍：戴在头顶、被刘海压住一半 =====
+       一条带包边的弧带，下沿描一圈波浪褶边，不用圆点(圆点叠起来像一串珍珠)。 -->
+  <g>
+    <path d="M40 84 C44 48 68 26 100 26 C132 26 156 48 160 84
+             C153 76 144 70 133 66 C121 61 111 59 100 59 C89 59 79 61 67 66
+             C56 70 47 76 40 84 Z"
+          fill="url(#frill)" stroke="#cfdfee" stroke-width="1" stroke-linejoin="round"/>
+    <!-- 波浪褶：沿内侧下沿的一排半圆 -->
+    <path d="M44 80 q5 7 9 0 q5 7 9 0 q5 7 9 0 q5 7 9 0 q5 7 9 0
+             q5 7 9 0 q5 7 9 0 q5 7 9 0 q5 7 9 0 q5 7 9 0
+             q5 7 9 0 q5 7 9 0 q3 5 5 0"
+          fill="none" stroke="#d3e2f0" stroke-width="1.7" stroke-linecap="round"/>
+    <!-- 一条高光, 让发箍有厚度 -->
+    <path d="M46 78 C51 50 71 35 100 35 C129 35 149 50 154 78"
+          fill="none" stroke="#ffffff" stroke-width="1.6" opacity="0.95" stroke-linecap="round"/>
+  </g>
+
+  <!-- ===== 刘海：整片压在发箍下沿之上，中分 + 侧分 ===== -->
+  <path d="M100 44
+           C70 44 49 64 46 96
+           C52 92 58 90 63 90
+           C57 80 57 70 60 62
+           C68 84 79 95 91 100
+           C83 87 80 75 82 65
+           C89 92 100 103 110 103
+           C105 90 103 78 104 67
+           C113 92 125 101 137 101
+           C133 88 133 76 136 65
+           C144 79 151 87 155 91
+           C155 72 150 59 142 51
+           C130 46 116 44 100 44 Z"
+        fill="url(#hair)"/>
+  <!-- 发丝的暗部：几道顺着走向的细线, 免得整块发片是一坨平色 -->
+  <g fill="none" stroke="#2a4bbd" stroke-width="1.5" opacity="0.55" stroke-linecap="round">
+    <path d="M62 62 C68 76 76 88 86 96"/>
+    <path d="M104 66 C110 82 120 94 132 100"/>
+    <path d="M100 50 C100 62 100 72 100 80"/>
+  </g>
+  <g fill="none" stroke="#7fd4f5" stroke-width="1.2" opacity="0.5" stroke-linecap="round">
+    <path d="M56 70 C62 84 70 94 80 100"/>
+    <path d="M138 68 C132 82 124 94 114 101"/>
+  </g>
+  <!-- 两侧鬓发 -->
+  <path d="M45 92 C39 110 39 128 45 144 C51 133 56 119 57 105 Z" fill="url(#hair)"/>
+  <path d="M155 92 C161 110 161 128 155 144 C149 133 144 119 143 105 Z" fill="url(#hair)"/>
+
+  <!-- ===== 青色蝴蝶结：别在发箍右侧 ===== -->
+  <g transform="translate(150 70) rotate(24)">
+    <path d="M0 0 C-9 -8 -19 -6 -19 0 C-19 6 -9 8 0 0 Z" fill="#46e2d1" stroke="#1fb3a3" stroke-width="0.8"/>
+    <path d="M0 0 C9 -8 19 -6 19 0 C19 6 9 8 0 0 Z" fill="#46e2d1" stroke="#1fb3a3" stroke-width="0.8"/>
+    <ellipse cx="-10" cy="-2" rx="5" ry="2.2" fill="#9bf5e9" opacity="0.8"/>
+    <ellipse cx="10" cy="-2" rx="5" ry="2.2" fill="#9bf5e9" opacity="0.8"/>
+    <circle cx="0" cy="0" r="3.6" fill="#7ff0e2" stroke="#1fb3a3" stroke-width="0.8"/>
+  </g>
+
+  <!-- ===== 眼睛 ===== -->
+  <ellipse cx="79" cy="110" rx="10.8" ry="13" fill="#20306c"/>
+  <ellipse cx="121" cy="110" rx="10.8" ry="13" fill="#20306c"/>
+  <ellipse cx="79" cy="111" rx="9.2" ry="11.4" fill="url(#eye)"/>
+  <ellipse cx="121" cy="111" rx="9.2" ry="11.4" fill="url(#eye)"/>
+  <ellipse cx="79" cy="116" rx="6.6" ry="6.2" fill="#a9ecff" opacity="0.55"/>
+  <ellipse cx="121" cy="116" rx="6.6" ry="6.2" fill="#a9ecff" opacity="0.55"/>
+  <circle cx="82.6" cy="104" r="3.5" fill="#ffffff"/>
+  <circle cx="124.6" cy="104" r="3.5" fill="#ffffff"/>
+  <circle cx="76" cy="116" r="1.9" fill="#ffffff" opacity="0.85"/>
+  <circle cx="118" cy="116" r="1.9" fill="#ffffff" opacity="0.85"/>
+  <path d="M68.5 101 C73 96 78.5 94 84.5 95" fill="none" stroke="#20306c" stroke-width="1.9" stroke-linecap="round"/>
+  <path d="M131.5 101 C127 96 121.5 94 115.5 95" fill="none" stroke="#20306c" stroke-width="1.9" stroke-linecap="round"/>
+
+  <!-- ===== 腮红 ===== -->
+  <ellipse cx="63" cy="124" rx="8.2" ry="4.8" fill="#ff9db4" opacity="0.5"/>
+  <ellipse cx="137" cy="124" rx="8.2" ry="4.8" fill="#ff9db4" opacity="0.5"/>
+
+  <!-- ===== 嘴 ===== -->
+  <path d="M93 128 C96.5 134 103.5 134 107 128" fill="none" stroke="#c4586f" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- ===== 高领 ===== -->
+  <path d="M75 143 C82 152 118 152 125 143 C125 155 75 155 75 143 Z" fill="#eef5fb" opacity="0.92"/>
+</svg>

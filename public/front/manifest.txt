@@ -1,0 +1,11 @@
+# 前端片段清单(v1.5.3 起)
+# build.mjs 按这个顺序把 public/front/*.js 拼成 public/app.js。
+# 新增片段时在这里加一行, 顺序 = 拼接顺序; 函数都是顶级声明, 共享同一个作用域。
+#
+core.js
+log.js
+dm.js
+changelog.js
+wins.js
+theme.js
+term.js
